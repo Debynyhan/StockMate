@@ -3,8 +3,8 @@ package com.zybooks.stockmate;
 import android.provider.BaseColumns;
 
 // User table contract class
-public final class UserContract {
-    private UserContract() {}
+public final class UserTable {
+    private UserTable() {}
 
     public static final class UserEntry implements BaseColumns {
         public static final String TABLE_NAME = "users";

@@ -3,8 +3,8 @@ package com.zybooks.stockmate;
 import android.provider.BaseColumns;
 
 // Inventory table contract class
-public final class InventoryContract {
-    private InventoryContract() {}
+public final class InventoryTable {
+    private InventoryTable() {}
 
     public final class InventoryEntry implements BaseColumns {
         public static final String TABLE_NAME = "inventory";
