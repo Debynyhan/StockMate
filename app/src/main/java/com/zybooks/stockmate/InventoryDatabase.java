@@ -149,7 +149,7 @@ public class InventoryDatabase extends SQLiteOpenHelper {
         values.put(InventoryContract.InventoryEntry.COLUMN_QUANTITY, item.getQuantity());
 
         // Define the selection criteria
-        String selection = COLUMN_ITEM_ID + " = ?";
+        String selection = COLUMN + " = ?";
         String[] selectionArgs = { String.valueOf(itemId) };
 
         // Execute the update operation
