@@ -2,192 +2,103 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/delete_button"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".EditItemActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appbar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+    <EditText
+        android:id="@+id/editItemName"
+        android:layout_width="332dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="40dp"
+        android:ems="10"
+        android:hint="Item Name"
+        android:inputType="text|textCapWords"
+        android:nextFocusDown="@id/editQuantity_edit"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+    <EditText
+        android:id="@+id/editQuantity_edit"
+        android:layout_width="60dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="4dp"
+        android:ems="10"
+        android:inputType="numberSigned"
+        android:nextFocusUp="@id/editItemName"
+        android:nextFocusDown="@id/saveItem"
+        app:layout_constraintStart_toEndOf="@+id/decreaseQuantityBtn_edit"
+        app:layout_constraintTop_toTopOf="@+id/decreaseQuantityBtn_edit" />
 
-            android:elevation="1dp"
-            app:navigationIcon="?attr/homeAsUpIndicator"
-            app:navigationIconTint="@color/white"
-            app:title="@string/edit_item_detail"
-            app:titleTextColor="@color/white" />
+    <ImageButton
+        android:id="@+id/decreaseQuantityBtn_edit"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="75dp"
+        android:layout_marginTop="40dp"
+        android:background="@color/purple_500"
+        android:onClick="decrementQuantity"
+        android:src="@drawable/ic_remove"
+        android:textAlignment="center"
+        app:layout_constraintStart_toEndOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/editItemName"
+        app:tint="@color/white"
+        tools:src="@drawable/ic_remove" />
 
-    </com.google.android.material.appbar.AppBarLayout>
+    <ImageButton
+        android:id="@+id/increaseQuantityBtn_edit"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="12dp"
+        android:background="@color/purple_500"
+        android:onClick="incrementQuantity"
+        android:src="@drawable/ic_add"
+        android:textAlignment="center"
+        app:layout_constraintStart_toEndOf="@+id/editQuantity_edit"
+        app:layout_constraintTop_toTopOf="@+id/decreaseQuantityBtn_edit"
+        app:tint="@color/white"
+        tools:src="@drawable/ic_add" />
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="130dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
-        app:cardUseCompatPadding="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/appbar">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/name_textview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/name_label" />
-
-            <EditText
-                android:id="@+id/name_edittext"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:hint="@string/name_hint"
-                android:inputType="text"
-                android:maxLines="1"
-                android:autofillHints="item name"
-                tools:ignore="VisualLintTextFieldSize" />
-
-            <TextView
-                android:id="@+id/description_textview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/description_label" />
-
-            <EditText
-                android:id="@+id/description_edittext"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:autofillHints="description details"
-                android:gravity="top"
-                android:hint="@string/description_hint"
-                android:inputType="textMultiLine"
-                android:outlineProvider="none"
-                android:singleLine="false"
-                tools:ignore="VisualLintTextFieldSize" />
-
-            <TextView
-                android:id="@+id/quantity_textview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/quantity_label" />
-
-            <EditText
-                android:id="@+id/quantity_edittext"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:autofillHints="edit quantity"
-                android:hint="@string/quantity_hint"
-                android:inputType="number"
-                android:maxLines="1"
-                tools:ignore="VisualLintTextFieldSize" />
-
-            <Button
-                android:id="@+id/button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                android:background="@drawable/rounded_btn"
-                android:text="@string/delete_item"
-                android:textColor="@color/white" />
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="20dp"
-                android:layout_marginStart="100dp"
-                android:text="@string/Quantity" />
-
-            <TextView
-                android:id="@+id/Qty"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="150dp"
-                android:text="@string/qty"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <ImageButton
-                    android:id="@+id/remove"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="80dp"
-                    android:layout_marginTop="5dp"
-                    android:backgroundTint="@color/green"
-                    android:contentDescription="@string/remove_button"
-                    android:translationX="-20dp"
-                    app:srcCompat="@drawable/remove"
-                    tools:ignore="ImageContrastCheck,RedundantDescriptionCheck" />
-
-                <EditText
-                    android:id="@+id/editTextNumberSigned5"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="numberSigned"
-                    android:translationX="-18dp"
-                    tools:ignore="SpeakableTextPresentCheck" />
-
-                <ImageButton
-                    android:id="@+id/add"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="50dp"
-                    android:layout_marginTop="10dp"
-                    android:backgroundTint="@color/green"
-                    android:contentDescription="@string/add_button"
-                    android:translationX="-70dp"
-                    android:translationY="-4dp"
-                    android:visibility="visible"
-                    app:srcCompat="@drawable/add"
-                    tools:ignore="RedundantDescriptionCheck" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton2"
+    <Button
+        android:id="@+id/saveItem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
-        android:clickable="true"
-        android:contentDescription="@string/add_Item"
-        android:translationX="150dp"
-        app:backgroundTint="@color/green"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_add" />
+        android:layout_marginTop="35dp"
+        android:background="@color/success"
+        android:nextFocusUp="@id/editQuantity_edit"
+        android:onClick="handleSaveItem"
+        android:text="@string/save_item"
+        app:backgroundTint="@color/success"
+        app:layout_constraintEnd_toEndOf="@+id/increaseQuantityBtn_edit"
+        app:layout_constraintTop_toBottomOf="@+id/increaseQuantityBtn_edit" />
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:layout_marginTop="48dp"
+        android:text="@string/quantity"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editItemName" />
+
+    <Button
+        android:id="@+id/deleteItemBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:background="@color/danger"
+        android:onClick="handleDeleteItem"
+        android:text="Delete Item"
+        app:backgroundTint="@color/danger"
+        app:icon="@drawable/trashcan"
+        app:layout_constraintEnd_toEndOf="@+id/saveItem"
+        app:layout_constraintTop_toBottomOf="@+id/saveItem" />
 </androidx.constraintlayout.widget.ConstraintLayout>

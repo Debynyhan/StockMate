@@ -12,12 +12,12 @@ public final class InventoryTable {
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_QUANTITY = "quantity";
 
-        public static final String CREATE_INVENTORY_TABLE =
-                "CREATE TABLE " + TABLE_NAME + " (" +
-                        _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        COLUMN_NAME + " TEXT NOT NULL, " +
-                        COLUMN_DESCRIPTION + " TEXT, " +
-                        COLUMN_QUANTITY + " REAL NOT NULL);";
+//        public static final String CREATE_INVENTORY_TABLE =
+//                "CREATE TABLE " + TABLE_NAME + " (" +
+//                        _ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//                        COLUMN_NAME + " TEXT NOT NULL, " +
+//                        COLUMN_DESCRIPTION + " TEXT, " +
+//                        COLUMN_QUANTITY + " REAL NOT NULL);";
     }
 
 

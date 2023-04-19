@@ -1,6 +1,8 @@
 package com.zybooks.stockmate;
 
-public class Item {
+import java.io.Serializable;
+
+public class Item implements Serializable {
     private long mId;
     private String mName;
     private int mQuantity;

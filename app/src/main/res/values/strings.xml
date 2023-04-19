@@ -39,4 +39,16 @@
     <string name="edit_menu">Edit</string>
     <string name="item_menu">Item</string>
     <string name="home_item">home list</string>
+    <string name="empty_list">"No Inventory. Add a new Item "</string>
+    <string name="delete_confirmation_title">Are you sure you want to delete item?</string>
+    <string name="delete_confirmation">Delete item</string>
+    <string name="save_error">Error saving</string>
+    <string name="delete_error">Error deleting item</string>
+    <string name="edit_item">Edit item</string>
+    <string name="remove_item">Remove item</string>
+    <string name="save_item">Save</string>
+    <string name="add_item">add item</string>
+    <string name="logout_text">logout</string>
+    <string name="manage_notifications">manage notifications</string>
+    <string name="sms_notification_dialog_title">Notifications</string>
 </resources>
