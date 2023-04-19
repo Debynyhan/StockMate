@@ -1,7 +1,5 @@
 package com.zybooks.stockmate;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -11,16 +9,20 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
+
 
 public class InventoryDatabase extends SQLiteOpenHelper {
 
     // Database name and version
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "StockMate.db";
-    private static final int MAX_INPUT_LENGTH = 10;
+    private static final int MAX_INPUT_LENGTH = 20;
+
+    private static final String TAG = "InventoryDatabase";
+    private static final int MIN_PASSWORD_LENGTH = 10;
+
 
     // Singleton instance of the database
     private static InventoryDatabase sInventoryDatabase;
@@ -112,44 +114,24 @@ public class InventoryDatabase extends SQLiteOpenHelper {
         return users;
     }
 
-
-
-
-
     /**
-     * This method checks if a username exists in the database
-     * @param username the user to check for
-     * @return true if the username exists, false otherwise
-     */
-
-
-    /**
-     * This method validate the user by checking if their name password exist
-     * in the database
+     * Validates a user's credentials by checking if their username and hashed password exist in the database.
+     *
      * @param username The username of the user.
      * @param password The password of the user.
-     * @return true if the user exists, false otherwise
+     * @return true if the user exists and the provided credentials match, false otherwise.
      */
-    /**
-     * This method validates the user by checking if their name and hashed password exist in the database
-     * @param username The username of the user.
-     * @param password The password of the user.
-     * @return true if the user exists, false otherwise
-     */
-    public boolean validateUser(String username, String password) {
+    public boolean validateUserCredentials(String username, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
-        String sql = "SELECT * FROM " + UserTable.UserEntry.TABLE_NAME + " WHERE username = ?";
-        String[] selectionArgs = {username};
+        String sql = "SELECT * FROM " + UserTable.UserEntry.TABLE_NAME + " WHERE username = ? AND password = ?";
+        String[] selectionArgs = {username, password};
 
         try (Cursor cursor = db.rawQuery(sql, selectionArgs)) {
             if (cursor.moveToFirst()) {
-                int passwordColumnIndex = cursor.getColumnIndex(UserTable.UserEntry.COLUMN_PASSWORD);
-                if (passwordColumnIndex >= 0) {
-                    String storedHash = cursor.getString(passwordColumnIndex);
-                    return MessageDigest.isEqual(hashPassword(password), storedHash.getBytes(StandardCharsets.UTF_8));
-                }
+                return true;
+            } else {
+                return false;
             }
-            return false;
         } catch (SQLException e) {
             Log.e(TAG, "Error executing SQL query", e);
             return false;
@@ -159,6 +141,84 @@ public class InventoryDatabase extends SQLiteOpenHelper {
             }
         }
     }
+
+
+
+
+
+
+    String bytesToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Get all inventory items
+     *
+     * @return List of inventory items
+     */
+    public List<Item> getItems() {
+        List<Item> items = new ArrayList<Item>();
+        SQLiteDatabase db = getReadableDatabase();
+
+        String sql = "SELECT * FROM " + UserTable.UserEntry.TABLE_NAME;
+        Cursor cursor = db.rawQuery(sql, new String[]{});
+        if (cursor.moveToFirst()) {
+            do {
+                long id = cursor.getLong(0);
+                String name = cursor.getString(1);
+                int quantity = cursor.getInt(2);
+                items.add(new Item(id, name, quantity));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+
+        return items;
+    }
+
+    /**
+     * Add an item to the database
+     *
+     * @param name     The name of the item
+     * @param quantity The quantity of the item
+     * @return Whether the item was successfully inserted into the database or not
+     */
+    public boolean addItem(String name, int quantity) {
+        // Get an instance of the writable database
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Set the values according to their columns
+        ContentValues values = new ContentValues();
+        values.put(InventoryTable.InventoryEntry.COLUMN_NAME, name);
+        values.put(InventoryTable.InventoryEntry.COLUMN_QUANTITY, quantity);
+
+        // Insert row
+        long itemId = db.insert(InventoryTable.InventoryEntry.TABLE_NAME, null, values);
+
+        return itemId != -1;
+    }
+
+    /**
+     * Delete an item from the database
+     *
+     * @param item The item to delete
+     * @return Whether the item was successfully deleted or not
+     */
+    public boolean deleteItem(Item item) {
+        // Get a writeable instance of the database
+        SQLiteDatabase db = getWritableDatabase();
+
+        // Delete the item matching the given item's ID
+        int rowsDeleted = db.delete(InventoryTable.InventoryEntry.TABLE_NAME, InventoryTable.InventoryEntry._ID + " = ?",
+                new String[]{String.valueOf(item.getId())});
+
+        // Check that the row was removed from the database
+        return rowsDeleted > 0;
+    }
+
 
 
     /**
@@ -169,16 +229,10 @@ public class InventoryDatabase extends SQLiteOpenHelper {
      * @return True if adding the user to the database was successful, false otherwise.
      */
     public synchronized boolean addUser(String name, String password) {
-        // Validate the input
-        if (!isValidUsername(name)) {
-            return false;
-        }
-        if (!isValidPassword(password)) {
-            return false;
-        }
+
 
         // Check if the username already exists in the database
-        if (usernameExists(name)) {
+        if (validateUserCredentials(name, password)) {
             return false;
         }
 
@@ -187,18 +241,21 @@ public class InventoryDatabase extends SQLiteOpenHelper {
         try {
             db = getWritableDatabase();
 
-            // Hash the password before storing it in the database
-            String hashedPassword = String.valueOf(hashPassword(password));
-
             // Add the new user to the database
             ContentValues values = new ContentValues();
             values.put(UserTable.UserEntry.COLUMN_USERNAME, name);
             values.put(UserTable.UserEntry.COLUMN_PASSWORD, password);
 
-            db.insertOrThrow(UserTable.UserEntry.TABLE_NAME, null, values);
-            return true;
+            long result = db.insert(UserTable.UserEntry.TABLE_NAME, null, values);
+
+            if (result == -1) {
+                Log.e(TAG, "Error adding user " + name);
+                return false;
+            } else {
+                return true;
+            }
         } catch (SQLException e) {
-            Log.e("Inventory Database", "Error adding user " + e.getMessage());
+            Log.e(TAG, "Error adding user " + e.getMessage());
         } finally {
             if (db != null) {
                 db.close();
@@ -209,100 +266,85 @@ public class InventoryDatabase extends SQLiteOpenHelper {
 
 
     /**
-     * This method add a new item to the inventory database
-     * @param name The name of the item
-     * @param description The description of the item
-     * @param quantity The quantity of the item
-     * @return The row ID of the new added item
-     */
-    public long addItem(String name, String description, int quantity) {
-        SQLiteDatabase db = null;
-        try {
-            db = this.getWritableDatabase();
-            ContentValues values = new ContentValues();
-            values.put(InventoryTable.InventoryEntry.COLUMN_NAME, name);
-            values.put(InventoryTable.InventoryEntry.COLUMN_DESCRIPTION, description);
-            values.put(InventoryTable.InventoryEntry.COLUMN_QUANTITY, quantity);
-
-            long newRowId = db.insertWithOnConflict(InventoryTable.InventoryEntry.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE);
-            return newRowId;
-        } catch (SQLException e) {
-            Log.e(TAG, "Error inserting item into inventory database", e);
-            return -1;
-        } finally {
-            if (db != null) {
-                db.close();
-            }
-        }
-    }
-
-
-    /**
-     * This method updates the item in the inventory database
-     * @param item The item to be updated in the database
-     * @return true if the update was successful, false otherwise
+     * Update an existing item
+     *
+     * @param item The item to update
+     * @return Whether the item was successfully updated or not
      */
     public boolean updateItem(Item item) {
-        SQLiteDatabase db = null;
-        try {
-            db = getWritableDatabase();
-            ContentValues values = new ContentValues();
-            values.put(InventoryTable.InventoryEntry.COLUMN_NAME, item.getName());
-            values.put(InventoryTable.InventoryEntry.COLUMN_QUANTITY, item.getQuantity());
+        // Get an instance of the writable database
+        SQLiteDatabase db = this.getWritableDatabase();
 
-            String selection = InventoryTable.InventoryEntry._ID + " = ?";
-            String[] selectionArgs = { String.valueOf(item.getId()) };
+        // Set the values according to their columns
+        ContentValues values = new ContentValues();
+        values.put(InventoryTable.InventoryEntry.COLUMN_NAME, item.getName());
+        values.put(InventoryTable.InventoryEntry.COLUMN_QUANTITY, item.getQuantity());
 
-            int rowsUpdated = db.update(InventoryTable.InventoryEntry.TABLE_NAME, values, selection, selectionArgs);
-            return rowsUpdated > 0;
-        } catch (SQLException e) {
-            Log.e(TAG, "Error executing SQL query", e);
-            return false;
-        } finally {
-            if (db != null) {
-                db.close();
-            }
-        }
+        // Update the item and check that it successfully updated
+        int rowsUpdated = db.update(InventoryTable.InventoryEntry.TABLE_NAME, values, InventoryTable.InventoryEntry._ID + " = ?",
+                new String[]{String.valueOf(item.getId())});
+
+        return rowsUpdated > 0;
     }
 
 
     /**
-     * The method delete items from the inventory database
-     * @param itemId The ID of the item to be deleted
-     * @return true if the item was deleted successfully, false otherwise
+     * Prints a list of all usernames and their corresponding passwords to the console.
      */
-    public boolean deleteItem(long itemId) {
-        boolean success = false;
+    public void printListOfPasswords() {
         SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            db = getWritableDatabase();
-            // Define the WHERE clause of the SQL statement
-            String selection = InventoryTable.InventoryEntry._ID + " = ?";
-            String[] selectionArgs = { String.valueOf(itemId) };
-            // Delete the item from the table
-            int rowsDeleted = db.delete(InventoryTable.InventoryEntry.TABLE_NAME, selection, selectionArgs);
-            success = rowsDeleted > 0;
+            db = getReadableDatabase();
+
+            // Define the columns to retrieve
+            String[] projection = {
+                    UserTable.UserEntry.COLUMN_USERNAME,
+                    UserTable.UserEntry.COLUMN_PASSWORD
+            };
+
+            // Query the database
+            cursor = db.query(UserTable.UserEntry.TABLE_NAME, projection, null, null, null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int usernameColumnIndex = cursor.getColumnIndex(UserTable.UserEntry.COLUMN_USERNAME);
+                int passwordColumnIndex = cursor.getColumnIndex(UserTable.UserEntry.COLUMN_PASSWORD);
+                while (!cursor.isAfterLast()) {
+                    String username = cursor.getString(usernameColumnIndex);
+
+                    byte[] passwordBytes = cursor.getBlob(passwordColumnIndex);
+                    String password = new String(passwordBytes, StandardCharsets.UTF_8);
+
+                    Log.d(TAG, String.format("Username: %s, Password: %s", username, password));
+                    cursor.moveToNext();
+                }
+            }
         } catch (SQLException e) {
-            Log.e(TAG, "Error deleting item with ID " + itemId, e);
+            Log.e(TAG, "Error executing SQL query", e);
         } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
             if (db != null) {
                 db.close();
             }
         }
-        return success;
     }
 
 
-    public byte[] hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            return hash;
-        } catch (NoSuchAlgorithmException e) {
-            // Handle the exception as appropriate for your application
-            throw new RuntimeException("Error hashing password", e);
-        }
-    }
+
+
+
+//    public static byte[] hashPassword(String password) {
+//        try {
+//            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+//            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+//            return hash;
+//        } catch (NoSuchAlgorithmException e) {
+//            // Handle the exception as appropriate for your application
+//            throw new RuntimeException("Error hashing password", e);
+//        }
+//    }
 
 
     /**
@@ -311,66 +353,21 @@ public class InventoryDatabase extends SQLiteOpenHelper {
      * @param input The input string to sanitize.
      * @return The sanitized input string.
      */
-    private String sanitizeInput(String input) {
+    String sanitizeInput(String input) {
         String sanitizedInput = input.trim();
         return sanitizedInput.substring(0, Math.min(sanitizedInput.length(), MAX_INPUT_LENGTH));
     }
 
-    /**
-     * Validates a username to ensure it is not null, empty, or too long.
-     *
-     * @param username The username to validate.
-     * @return True if the username is valid, false otherwise.
-     */
-    private boolean isValidUsername(String username) {
-        String sanitizedUsername = sanitizeInput(username);
-        if (sanitizedUsername == null || sanitizedUsername.isEmpty() || sanitizedUsername.length() > MAX_INPUT_LENGTH) {
-            return false; // Invalid username
-        }
-        return true; // Valid username
-    }
-
-    /**
-     * Validates a password to ensure it is not null, empty, or too long.
-     *
-     * @param password The password to validate.
-     * @return True if the password is valid, false otherwise.
-     */
-    private boolean isValidPassword(String password) {
-
-        String sanitizedPassword = sanitizeInput(password);
-
-        if (sanitizedPassword == null || sanitizedPassword.isEmpty() || sanitizedPassword.length() > MAX_INPUT_LENGTH) {
-            return false; // Invalid password
-        }
-        return true; // Valid password
-    }
+//    public byte[] sanitizeAndHash(String input) {
+//        return hashPassword(sanitizeInput(input));
+//    }
+//
 
 
-    /**
-     * Check if the provided username already exists in the database.
-     *
-     * @param username The username to check.
-     * @return True if the username exists, false otherwise.
-     */
-    private boolean usernameExists(String username) {
-        SQLiteDatabase db = getReadableDatabase();
-        String sql = "SELECT COUNT(*) FROM " + UserTable.UserEntry.TABLE_NAME + " WHERE " +
-                UserTable.UserEntry.COLUMN_USERNAME + " = ?";
-        String[] selectionArgs = {username};
 
-        try (Cursor cursor = db.rawQuery(sql, selectionArgs)) {
-            if (cursor.moveToFirst()) {
-                int count = cursor.getInt(0);
-                return count > 0;
-            }
-        } catch (SQLException e) {
-            Log.e(TAG, "Error executing SQL query", e);
-        } finally {
-            db.close();
-        }
-
-        return false;
+    void printListOfUsers() {
+        ArrayList<String> users = getUsers();
+        Log.d(TAG, "List of users: " + users.toString());
     }
 
 

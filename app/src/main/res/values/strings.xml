@@ -39,4 +39,7 @@
     <string name="edit_menu">Edit</string>
     <string name="item_menu">Item</string>
     <string name="home_item">home list</string>
+    <string name="empty_list">"No Inventory. Add a new Item "</string>
+    <string name="delete_confirmation_title">Are you sure you want to delete item?</string>
+    <string name="delete_confirmation">Delete item</string>
 </resources>
